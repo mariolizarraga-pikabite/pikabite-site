@@ -1,0 +1,5 @@
+# Optional: example redirects (uncomment if needed)
+# [[redirects]]
+#   from = "/*"
+#   to = "/index.html"
+#   status = 200
