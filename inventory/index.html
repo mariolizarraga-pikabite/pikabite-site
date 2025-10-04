@@ -41,7 +41,7 @@
         <form id="saleForm" class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label class="block text-xs mb-1">Product</label>
-            <input id="saleProduct" class="w-full rounded-lg border p-2" placeholder="Gushers" required />
+            <select id="saleProduct" class="w-full rounded-lg border p-2"></select>
           </div>
           <div>
             <label class="block text-xs mb-1">Qty</label>
@@ -88,7 +88,7 @@
         <form id="restockForm" class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label class="block text-xs mb-1">Product</label>
-            <input id="restockProduct" class="w-full rounded-lg border p-2" placeholder="Gushers" required />
+            <select id="restockProduct" class="w-full rounded-lg border p-2"></select>
           </div>
           <div>
             <label class="block text-xs mb-1">Qty (+)</label>
@@ -107,7 +107,7 @@
         <form id="adjustForm" class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label class="block text-xs mb-1">Product</label>
-            <input id="adjustProduct" class="w-full rounded-lg border p-2" placeholder="Gushers" required />
+            <select id="adjustProduct" class="w-full rounded-lg border p-2"></select>
           </div>
           <div>
             <label class="block text-xs mb-1">Delta (+/-)</label>
@@ -125,6 +125,71 @@
       </div>
     </section>
   </main>
+
+    <script>
+    // Utility
+    const money = (n) => (n == null || isNaN(n)) ? '' : '$ ' + Number(n).toFixed(2);
+  
+    // Fill all product dropdowns from the products-list function
+    async function populateProductDropdowns() {
+      const res = await fetch('/.netlify/functions/products-list', { cache: 'no-store' });
+      if (!res.ok) throw new Error('Failed to load products');
+      const { items } = await res.json(); // [{product, price}, ...]
+  
+      // Build option HTML once
+      const opts = items.map(p => `<option value="${p.product}" data-price="${p.price}">${p.product}</option>`).join('');
+  
+      // Attach to each select
+      for (const id of ['saleProduct', 'restockProduct', 'adjustProduct']) {
+        const sel = document.getElementById(id);
+        sel.innerHTML = opts;
+      }
+  
+      // Optional: when selecting a product in the Sale form, show its price
+      const saleSelect = document.getElementById('saleProduct');
+      const salePrice  = document.getElementById('salePrice'); // your existing input
+      const setPricePlaceholder = () => {
+        const opt = saleSelect.selectedOptions[0];
+        const p   = opt ? Number(opt.getAttribute('data-price')) : null;
+        salePrice.placeholder = p ? Number(p).toFixed(2) : '';
+      };
+      saleSelect.addEventListener('change', setPricePlaceholder);
+      setPricePlaceholder(); // initialize once
+    }
+  
+    // Existing loadInventory() stays the same
+    async function loadInventory() {
+      const invBody = document.getElementById('invBody');
+      invBody.innerHTML = `<tr><td class="p-3" colspan="4">Loading…</td></tr>`;
+      const res = await fetch('/.netlify/functions/inventory-list', { cache: 'no-store' });
+      if (!res.ok) {
+        invBody.innerHTML = `<tr><td class="p-3 text-red-600" colspan="4">Error ${res.status}</td></tr>`;
+        return;
+      }
+      const { items } = await res.json(); // from inventory_current view: [{product, qty, price}]
+      invBody.innerHTML = items.map(r => {
+        const total = (Number(r.qty || 0) * Number(r.price || 0)) || 0;
+        return `
+          <tr class="border-t">
+            <td class="p-3">${r.product}</td>
+            <td class="p-3 text-right">${r.qty}</td>
+            <td class="p-3 text-right">${money(r.price)}</td>
+            <td class="p-3 text-right">${r.qty > 0 ? money(total) : '—'}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+  
+    // ---- existing submit handlers can stay the same ----
+    // saleForm uses saleProduct.value, restockForm uses restockProduct.value, adjustForm uses adjustProduct.value
+  
+    // Bootstrap page
+    (async () => {
+      await populateProductDropdowns();
+      await loadInventory();
+    })();
+  </script>
+
 
   <script>
     const invBody = document.getElementById('invBody');
