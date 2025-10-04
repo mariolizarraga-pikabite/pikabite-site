@@ -3,3 +3,11 @@
 #   from = "/*"
 #   to = "/index.html"
 #   status = 200
+
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+[dev]
+  functions = "netlify/functions"
+  port = 8888
