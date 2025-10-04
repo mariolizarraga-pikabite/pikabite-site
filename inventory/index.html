@@ -40,6 +40,10 @@
         <div class="p-3 border-b font-medium">Log a Sale</div>
         <form id="saleForm" class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
+            <label class="block text-xs mb-1">Seller</label>
+            <select id="saleSeller" class="w-full rounded-lg border p-2"></select>
+          </div>
+          <div>
             <label class="block text-xs mb-1">Product</label>
             <select id="saleProduct" class="w-full rounded-lg border p-2"></select>
           </div>
@@ -68,7 +72,7 @@
             </select>
           </div>
           <div class="sm:col-span-2">
-            <label class="block text-xs mb-1">Person</label>
+            <label class="block text-xs mb-1">Buyer</label>
             <input id="salePerson" class="w-full rounded-lg border p-2" placeholder="LP / Eddie / Angie..." />
           </div>
           <div class="sm:col-span-2">
@@ -189,6 +193,7 @@
           paid: document.getElementById('salePaid').value,
           deposited: document.getElementById('saleDeposited').value,
           person: document.getElementById('salePerson').value.trim(),
+          seller: document.getElementById('saleSeller').value.trim(),
           paymentMethod: document.getElementById('salePayMethod').value.trim(),
           notes: document.getElementById('saleNotes').value.trim()
         };
@@ -261,9 +266,21 @@
     
       (async () => {
         await populateProductDropdowns();
+        await populateSellerDropdown();
         await loadInventory();
       })();
     </script>
+
+    <script>
+      async function populateSellerDropdown() {
+        const res = await fetch('/.netlify/functions/sellers-list', { cache: 'no-store' });
+        if (!res.ok) throw new Error('Failed to load sellers: ' + (await res.text()));
+        const { items } = await res.json(); // [{ name }]
+        const sel = document.getElementById('saleSeller');
+        sel.innerHTML = items.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+      }
+    </script>
+
 
 </body>
 </html>
