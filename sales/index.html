@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pikabite Sales</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-900">
+  <header class="sticky top-0 bg-white/90 backdrop-blur border-b">
+    <div class="max-w-4xl mx-auto px-4 py-3">
+      <h1 class="text-lg font-semibold">Sales</h1>
+      <p class="text-xs text-gray-600">Public view — latest first</p>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto p-4">
+    <!-- Filters -->
+    <section class="rounded-xl border bg-white p-4 mb-4 grid grid-cols-1 sm:grid-cols-5 gap-3">
+      <div class="sm:col-span-2">
+        <label class="block text-xs mb-1">Seller</label>
+        <input id="fSeller" class="w-full rounded-lg border p-2" placeholder="e.g., Mario Lizarraga" />
+      </div>
+      <div class="sm:col-span-2">
+        <label class="block text-xs mb-1">Product</label>
+        <input id="fProduct" class="w-full rounded-lg border p-2" placeholder="e.g., Gushers" />
+      </div>
+      <div>
+        <label class="block text-xs mb-1">Rows</label>
+        <input id="fLimit" type="number" min="1" max="500" value="100" class="w-full rounded-lg border p-2" />
+      </div>
+      <div>
+        <label class="block text-xs mb-1">Paid</label>
+        <select id="fPaid" class="w-full rounded-lg border p-2">
+          <option value="">Any</option><option>Yes</option><option>No</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs mb-1">Deposited</label>
+        <select id="fDeposited" class="w-full rounded-lg border p-2">
+          <option value="">Any</option><option>Yes</option><option>No</option>
+        </select>
+      </div>
+      <div class="sm:col-span-5 flex gap-2">
+        <button id="applyBtn" class="px-4 py-2 rounded-lg bg-black text-white">Apply</button>
+        <button id="resetBtn" class="px-4 py-2 rounded-lg border">Reset</button>
+        <span id="status" class="text-sm text-gray-600 self-center"></span>
+      </div>
+    </section>
+
+    <!-- Table -->
+    <section class="rounded-xl border bg-white overflow-hidden">
+      <div class="p-3 border-b font-medium">Sales</div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
+          <thead class="bg-gray-100">
+            <tr>
+              <th class="text-left p-3">Date</th>
+              <th class="text-left p-3">Seller</th>
+              <th class="text-left p-3">Buyer</th>
+              <th class="text-left p-3">Product</th>
+              <th class="text-right p-3">Qty</th>
+              <th class="text-right p-3">Price</th>
+              <th class="text-right p-3">Total</th>
+              <th class="text-left p-3">Pay</th>
+              <th class="text-left p-3">Dep</th>
+              <th class="text-left p-3">Method</th>
+              <th class="text-left p-3">Notes</th>
+            </tr>
+          </thead>
+          <tbody id="salesBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const money = (n) => (n == null || isNaN(n)) ? '' : '$ ' + Number(n).toFixed(2);
+    const fmtDate = (iso) => {
+      if (!iso) return '';
+      const d = new Date(iso);
+      // show local date (MM/DD/YYYY) + time
+      return d.toLocaleString();
+    };
+
+    function buildUrl() {
+      const p = new URLSearchParams();
+      const limit = Math.max(1, Math.min(Number(document.getElementById('fLimit').value || 100), 500));
+      p.set('limit', String(limit));
+      const seller = document.getElementById('fSeller').value.trim();
+      const product = document.getElementById('fProduct').value.trim();
+      const paid = document.getElementById('fPaid').value;
+      const deposited = document.getElementById('fDeposited').value;
+      if (seller) p.set('seller', seller);
+      if (product) p.set('product', product);
+      if (paid) p.set('paid', paid);
+      if (deposited) p.set('deposited', deposited);
+      return '/.netlify/functions/sales-list?' + p.toString();
+    }
+
+    async function loadSales() {
+      const status = document.getElementById('status');
+      const body = document.getElementById('salesBody');
+      status.textContent = 'Loading…';
+      body.innerHTML = `<tr><td class="p-3" colspan="11">Loading…</td></tr>`;
+
+      try {
+        const res = await fetch(buildUrl(), { cache: 'no-store' });
+        const text = await res.text();
+        if (!res.ok) throw new Error(text || ('HTTP '+res.status));
+        const { items } = JSON.parse(text);
+
+        if (!items.length) {
+          body.innerHTML = `<tr><td class="p-3" colspan="11">No results.</td></tr>`;
+        } else {
+          body.innerHTML = items.map(r => `
+            <tr class="border-t align-top">
+              <td class="p-3 whitespace-nowrap">${fmtDate(r.created_at)}</td>
+              <td class="p-3">${r.seller ?? ''}</td>
+              <td class="p-3">${r.person ?? ''}</td>
+              <td class="p-3">${r.product}</td>
+              <td class="p-3 text-right">${r.qty}</td>
+              <td class="p-3 text-right">${money(r.price)}</td>
+              <td class="p-3 text-right">${money(r.total)}</td>
+              <td class="p-3">${r.paid ? 'Yes' : 'No'}</td>
+              <td class="p-3">${r.deposited ? 'Yes' : 'No'}</td>
+              <td class="p-3">${r.payment_method ?? ''}</td>
+              <td class="p-3">${r.notes ?? ''}</td>
+            </tr>
+          `).join('');
+        }
+        status.textContent = `Showing ${items.length} row(s)`;
+      } catch (err) {
+        body.innerHTML = `<tr><td class="p-3 text-red-600" colspan="11">Error: ${err.message}</td></tr>`;
+        status.textContent = '';
+        console.error(err);
+      }
+    }
+
+    document.getElementById('applyBtn').addEventListener('click', (e) => {
+      e.preventDefault(); loadSales();
+    });
+    document.getElementById('resetBtn').addEventListener('click', (e) => {
+      e.preventDefault();
+      document.getElementById('fSeller').value = '';
+      document.getElementById('fProduct').value = '';
+      document.getElementById('fPaid').value = '';
+      document.getElementById('fDeposited').value = '';
+      document.getElementById('fLimit').value = 100;
+      loadSales();
+    });
+
+    loadSales();
+  </script>
+</body>
+</html>
