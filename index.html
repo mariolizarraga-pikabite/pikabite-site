@@ -1,29 +1,262 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>PikaBite — Hello there!</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PikaBite — Spicy Gummies that Bite Back</title>
+  <meta name="description" content="Handmade spicy gummies inspired by Mexican candies. Sweet, tangy, and perfectly spicy. Order PikaBite today!" />
+  <link rel="icon" href="/favicon.ico" />
+  <meta property="og:title" content="PikaBite — Spicy Gummies that Bite Back" />
+  <meta property="og:description" content="Handmade spicy gummies inspired by Mexican candies. Sweet, tangy, and perfectly spicy." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://pikabite.com/" />
+  <meta property="og:image" content="/og-pikabite.jpg" />
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    html, body {height: 100%; margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;}
-    .wrap {display: grid; place-items: center; height: 100%; background: radial-gradient(circle at 20% 10%, #fff6, transparent 40%), linear-gradient(135deg,#ffe08a,#ffd166 40%,#ffaf87 80%);}
-    .card {background: white; padding: 2.5rem 3rem; border-radius: 1.25rem; box-shadow: 0 8px 30px rgba(0,0,0,.12); text-align:center; max-width: 560px;}
-    h1 {font-size: clamp(2.2rem, 4vw, 3rem); margin: 0 0 .5rem;}
-    p {margin: 0.25rem 0 0; font-size: 1.15rem; color: #333;}
-    .tag {display:inline-block; margin-top:1rem; padding:.35rem .7rem; background:#ffebc1; border-radius:.6rem; font-weight:600;}
-    footer {margin-top: 1.25rem; font-size:.95rem; color:#666}
-    a {color:#e76f51; text-decoration:none}
-    a:hover{text-decoration:underline}
+    .chili-bg { background-image: radial-gradient(ellipse at 10% -10%, rgba(255,255,255,.35), rgba(255,255,255,0) 40%), linear-gradient(135deg, #ffedd5, #fed7aa 40%, #fecaca 85%); }
+    .glass { backdrop-filter: blur(8px); background: rgba(255,255,255,.66); }
   </style>
 </head>
-<body>
-  <div class="wrap">
-    <div class="card">
-      <div class="tag">PikaBite</div>
-      <h1>Hello there 👋</h1>
-      <p>Perla, Mauricio, Brenda and Mario...</p>
-      <p>Welcome to your new website!!!</p>
-    </div>
+<body class="min-h-screen bg-white text-gray-900">
+  <!-- Announcement Bar -->
+  <div class="bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 text-white text-sm text-center py-2">
+    🔥 Launch special: Free local delivery in Bothell/Redmond on orders over $20
   </div>
+
+  <!-- Header -->
+  <header class="sticky top-0 z-30 glass border-b">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-2 font-extrabold text-xl">
+        <span class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-red-500 to-amber-400 text-white">🌶️</span>
+        PikaBite
+      </a>
+      <nav class="hidden md:flex items-center gap-6 text-sm">
+        <a href="#products" class="hover:text-red-600">Products</a>
+        <a href="#how" class="hover:text-red-600">How it’s made</a>
+        <a href="#reviews" class="hover:text-red-600">Reviews</a>
+        <a href="https://www.instagram.com/pik.a.bite/" target="_blank" class="hover:text-red-600">Instagram</a>
+      </nav>
+      <div class="flex items-center gap-2">
+        <button id="orderNowTop" class="hidden sm:inline-flex px-4 py-2 rounded-xl bg-black text-white text-sm font-medium hover:opacity-90">Order now</button>
+        <button id="menuBtn" class="md:hidden inline-flex p-2 rounded-lg border" aria-label="Menu">☰</button>
+      </div>
+    </div>
+    <!-- Mobile Menu -->
+    <div id="mobileMenu" class="md:hidden hidden border-t">
+      <nav class="px-4 py-3 grid gap-2 text-sm">
+        <a href="#products" class="py-2">Products</a>
+        <a href="#how" class="py-2">How it’s made</a>
+        <a href="#reviews" class="py-2">Reviews</a>
+        <a href="https://www.instagram.com/pik.a.bite/" target="_blank" class="py-2">Instagram</a>
+        <button id="orderNowMobile" class="mt-2 px-4 py-2 rounded-xl bg-black text-white text-sm font-medium">Order now</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="chili-bg relative">
+    <div class="max-w-6xl mx-auto px-4 py-20 grid md:grid-cols-2 gap-10 items-center">
+      <div>
+        <h1 class="text-4xl md:text-5xl font-extrabold leading-tight">Spicy Gummies<br><span class="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-amber-500">that Bite Back</span></h1>
+        <p class="mt-4 text-lg text-gray-700">Sweet, tangy, and perfectly spicy—handmade in small batches with real chile-limón vibes. Your new addiction is here. 😈</p>
+        <div class="mt-6 flex flex-wrap gap-3">
+          <button class="px-5 py-3 rounded-xl bg-black text-white font-medium" data-open-order>Order now</button>
+          <a href="https://www.instagram.com/pik.a.bite/" target="_blank" class="px-5 py-3 rounded-xl border font-medium">Follow on Instagram</a>
+        </div>
+        <div class="mt-4 text-sm text-gray-600 flex items-center gap-2">
+          <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-green-500 text-white text-xs">✓</span>
+          Fresh weekly • Local pickup/delivery • Small-batch quality
+        </div>
+      </div>
+      <div class="relative">
+        <div class="aspect-[4/3] rounded-3xl shadow-2xl ring-1 ring-black/5 overflow-hidden bg-white/70 flex items-center justify-center text-7xl">🍬🌶️</div>
+        <p class="text-center text-sm text-gray-500 mt-2">Product images coming soon</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Products -->
+  <section id="products" class="max-w-6xl mx-auto px-4 py-16">
+    <div class="flex items-end justify-between">
+      <h2 class="text-2xl md:text-3xl font-bold">Best Sellers</h2>
+      <a href="#order" data-open-order class="text-sm text-red-600 hover:underline">See all &raquo;</a>
+    </div>
+    <div class="mt-6 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Card 1 -->
+      <article class="rounded-2xl border overflow-hidden bg-white flex flex-col">
+        <div class="h-44 bg-gradient-to-br from-amber-100 to-red-100 grid place-items-center text-6xl">🟧</div>
+        <div class="p-4 flex-1 flex flex-col">
+          <h3 class="font-semibold">Mango Chamoy Gummies</h3>
+          <p class="text-sm text-gray-600 mt-1">Bright mango, chamoy swirl, chili-lime dust.</p>
+          <div class="mt-auto flex items-center justify-between pt-4">
+            <div class="font-semibold">$6 / bag</div>
+            <button class="px-3 py-2 rounded-lg bg-black text-white text-sm" data-open-order data-product="Mango Chamoy Gummies">Add to order</button>
+          </div>
+        </div>
+      </article>
+      <!-- Card 2 -->
+      <article class="rounded-2xl border overflow-hidden bg-white flex flex-col">
+        <div class="h-44 bg-gradient-to-br from-red-100 to-rose-100 grid place-items-center text-6xl">🍉</div>
+        <div class="p-4 flex-1 flex flex-col">
+          <h3 class="font-semibold">Watermelon Fire Bites</h3>
+          <p class="text-sm text-gray-600 mt-1">Juicy sandía + a sneaky kick. Crowd favorite.</p>
+          <div class="mt-auto flex items-center justify-between pt-4">
+            <div class="font-semibold">$6 / bag</div>
+            <button class="px-3 py-2 rounded-lg bg-black text-white text-sm" data-open-order data-product="Watermelon Fire Bites">Add to order</button>
+          </div>
+        </div>
+      </article>
+      <!-- Card 3 -->
+      <article class="rounded-2xl border overflow-hidden bg-white flex flex-col">
+        <div class="h-44 bg-gradient-to-br from-amber-100 to-yellow-100 grid place-items-center text-6xl">🌈</div>
+        <div class="p-4 flex-1 flex flex-col">
+          <h3 class="font-semibold">Gushers Diablo</h3>
+          <p class="text-sm text-gray-600 mt-1">Sweet core, spicy shell — the perfect bite.</p>
+          <div class="mt-auto flex items-center justify-between pt-4">
+            <div class="font-semibold">$8 / cup</div>
+            <button class="px-3 py-2 rounded-lg bg-black text-white text-sm" data-open-order data-product="Gushers Diablo">Add to order</button>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- How it's made -->
+  <section id="how" class="bg-amber-50/60">
+    <div class="max-w-6xl mx-auto px-4 py-16 grid md:grid-cols-3 gap-8">
+      <div>
+        <h2 class="text-2xl md:text-3xl font-bold">Real flavor. Small batches.</h2>
+        <p class="mt-2 text-gray-700">We blend gummies with our house chamoy and a balanced chile-limón mix for a perfect sweet-heat finish.</p>
+      </div>
+      <ul class="md:col-span-2 grid sm:grid-cols-3 gap-6">
+        <li class="rounded-2xl border bg-white p-4">
+          <div class="text-3xl">🫙</div>
+          <h3 class="mt-2 font-semibold">Fresh weekly</h3>
+          <p class="text-sm text-gray-600">Made-to-order for peak texture & flavor.</p>
+        </li>
+        <li class="rounded-2xl border bg-white p-4">
+          <div class="text-3xl">🌶️</div>
+          <h3 class="mt-2 font-semibold">Heat levels</h3>
+          <p class="text-sm text-gray-600">Choose mild, medium, or extra fuego.</p>
+        </li>
+        <li class="rounded-2xl border bg-white p-4">
+          <div class="text-3xl">📦</div>
+          <h3 class="mt-2 font-semibold">Pickup / delivery</h3>
+          <p class="text-sm text-gray-600">Local options & pop‑ups announced on IG.</p>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Reviews -->
+  <section id="reviews" class="max-w-6xl mx-auto px-4 py-16">
+    <h2 class="text-2xl md:text-3xl font-bold">People are hooked</h2>
+    <div class="mt-6 grid md:grid-cols-3 gap-6">
+      <blockquote class="rounded-2xl border p-5 bg-white">“Perfect balance of sweet & spicy. Couldn’t stop eating them.”<div class="mt-3 text-sm text-gray-600">— LP</div></blockquote>
+      <blockquote class="rounded-2xl border p-5 bg-white">“Legit tastes like summer in a bag. Mango is insane.”<div class="mt-3 text-sm text-gray-600">— Eddie</div></blockquote>
+      <blockquote class="rounded-2xl border p-5 bg-white">“I brought these to game night… gone in 5 minutes.”<div class="mt-3 text-sm text-gray-600">— Angie</div></blockquote>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="relative chili-bg">
+    <div class="max-w-4xl mx-auto px-4 py-16 text-center">
+      <h2 class="text-3xl md:text-4xl font-extrabold">Ready to feel the bite?</h2>
+      <p class="mt-3 text-lg text-gray-700">Tap below to send us your order. We’ll confirm pickup or delivery ASAP.</p>
+      <div class="mt-6 flex flex-wrap justify-center gap-3">
+        <button class="px-6 py-3 rounded-xl bg-black text-white font-semibold" data-open-order>Place an order</button>
+        <a href="https://www.instagram.com/pik.a.bite/" target="_blank" class="px-6 py-3 rounded-xl border font-semibold">DM on Instagram</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="border-t">
+    <div class="max-w-6xl mx-auto px-4 py-8 text-sm text-gray-600 grid md:grid-cols-3 gap-6">
+      <div>
+        <div class="font-bold">PikaBite</div>
+        <p>Spicy gummies made in Bothell, WA.</p>
+        <a href="mailto:orders@pikabite.com" class="hover:text-red-600">orders@pikabite.com</a>
+      </div>
+      <div>
+        <div class="font-semibold">Learn more</div>
+        <ul class="mt-2 space-y-1">
+          <li><a class="hover:text-red-600" href="#how">How it’s made</a></li>
+          <li><a class="hover:text-red-600" href="#reviews">Reviews</a></li>
+          <li><a class="hover:text-red-600" href="/sales.html">Sales (internal)</a></li>
+          <li><a class="hover:text-red-600" href="/inventory.html">Inventory (internal)</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="font-semibold">Follow</div>
+        <a href="https://www.instagram.com/pik.a.bite/" target="_blank" class="inline-flex items-center gap-2 hover:text-red-600">Instagram →</a>
+      </div>
+    </div>
+    <div class="text-center text-xs text-gray-500 pb-8">© <span id="year"></span> PikaBite. All rights reserved.</div>
+  </footer>
+
+  <!-- Order Modal (Netlify Form) -->
+  <dialog id="orderDialog" class="rounded-2xl w-full max-w-md p-0 shadow-2xl">
+    <form method="post" name="order" data-netlify="true" class="p-5">
+      <input type="hidden" name="form-name" value="order" />
+      <div class="flex items-start justify-between">
+        <h3 class="text-lg font-semibold">Place your order</h3>
+        <button type="button" class="p-2" data-close>✕</button>
+      </div>
+      <div class="grid grid-cols-1 gap-3 mt-3">
+        <label class="grid gap-1 text-sm">
+          <span>Product</span>
+          <input id="fProduct" name="product" required class="rounded-lg border p-2" placeholder="Mango Chamoy Gummies" />
+        </label>
+        <label class="grid gap-1 text-sm">
+          <span>Heat level</span>
+          <select name="heat" class="rounded-lg border p-2">
+            <option>Mild</option>
+            <option>Medium</option>
+            <option>Extra</option>
+          </select>
+        </label>
+        <label class="grid gap-1 text-sm">
+          <span>Quantity</span>
+          <input type="number" name="qty" min="1" value="1" required class="rounded-lg border p-2" />
+        </label>
+        <label class="grid gap-1 text-sm">
+          <span>Your name</span>
+          <input name="name" required class="rounded-lg border p-2" />
+        </label>
+        <label class="grid gap-1 text-sm">
+          <span>Contact (phone or email)</span>
+          <input name="contact" required class="rounded-lg border p-2" />
+        </label>
+        <label class="grid gap-1 text-sm">
+          <span>Notes</span>
+          <textarea name="notes" rows="3" class="rounded-lg border p-2" placeholder="Pickup/Delivery preference, address, etc." ></textarea>
+        </label>
+        <button class="mt-1 px-4 py-2 rounded-xl bg-black text-white">Submit order</button>
+        <p class="text-xs text-gray-500">We’ll reply to confirm total and pickup/delivery.</p>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+    // Year
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Mobile menu toggle
+    const menuBtn = document.getElementById('menuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    if (menuBtn) menuBtn.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+
+    // Order modal helpers
+    const dlg = document.getElementById('orderDialog');
+    const openers = document.querySelectorAll('[data-open-order], #orderNowTop, #orderNowMobile');
+    const fProduct = document.getElementById('fProduct');
+    openers.forEach(btn => btn.addEventListener('click', () => {
+      const p = btn.getAttribute('data-product');
+      if (p) fProduct.value = p; else if (!fProduct.value) fProduct.value = 'Mango Chamoy Gummies';
+      dlg.showModal();
+    }));
+    dlg?.querySelector('[data-close]')?.addEventListener('click', () => dlg.close());
+  </script>
 </body>
 </html>
