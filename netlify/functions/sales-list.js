@@ -28,7 +28,7 @@ export async function handler(event) {
 
   let query = supabase
     .from('sales')
-    .select('created_at, product, qty, price, total, paid, deposited, person, seller, payment_method, notes')
+    .select('id, created_at, product, qty, price, total, paid, deposited, person, seller, payment_method, notes')
     .order('created_at', { ascending: false })
     .limit(limit);
 
