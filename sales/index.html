@@ -149,7 +149,7 @@
           body.innerHTML = `<tr><td class="p-3" colspan="11">No results.</td></tr>`;
         } else {
           body.innerHTML = items.map(r => `
-            <tr class="border-t align-top">
+            <tr class="border-t align-top" data-id="${r.id}">
               <td class="p-3 whitespace-nowrap">${fmtDate(r.created_at)}</td>
               <td class="p-3">${r.seller ?? ''}</td>
               <td class="p-3">${r.person ?? ''}</td>
@@ -157,12 +157,24 @@
               <td class="p-3 text-right">${r.qty}</td>
               <td class="p-3 text-right">${money(r.price)}</td>
               <td class="p-3 text-right">${money(r.total)}</td>
-              <td class="p-3">${r.paid ? 'Yes' : 'No'}</td>
-              <td class="p-3">${r.deposited ? 'Yes' : 'No'}</td>
+              <td class="p-3">
+                <button class="px-2 py-1 rounded border text-xs toggle-paid ${r.paid ? 'bg-green-100' : ''}">
+                  ${r.paid ? 'Yes' : 'No'}
+                </button>
+              </td>
+              <td class="p-3">
+                <button class="px-2 py-1 rounded border text-xs toggle-deposited ${r.deposited ? 'bg-blue-100' : ''}">
+                  ${r.deposited ? 'Yes' : 'No'}
+                </button>
+              </td>
               <td class="p-3">${r.payment_method ?? ''}</td>
-              <td class="p-3">${r.notes ?? ''}</td>
+              <td class="p-3">
+                <div>${r.notes ?? ''}</div>
+                <button class="mt-1 px-2 py-1 rounded border text-xs edit-row">Edit</button>
+              </td>
             </tr>
           `).join('');
+
         }
         status.textContent = `Showing ${items.length} row(s)`;
       } catch (err) {
