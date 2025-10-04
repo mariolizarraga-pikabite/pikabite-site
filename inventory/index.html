@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pikabite Inventory</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-900">
+  <header class="sticky top-0 bg-white/90 backdrop-blur border-b">
+    <div class="max-w-3xl mx-auto px-4 py-3">
+      <h1 class="text-lg font-semibold">Pikabite Inventory</h1>
+      <p class="text-xs text-gray-600">Public test — ledger-based (prices from products)</p>
+    </div>
+  </header>
+
+  <main class="max-w-3xl mx-auto p-4">
+    <!-- Inventory table -->
+    <section class="rounded-xl border bg-white overflow-hidden">
+      <div class="p-3 border-b font-medium">Current Inventory</div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
+          <thead class="bg-gray-100">
+            <tr>
+              <th class="text-left p-3">Product</th>
+              <th class="text-right p-3">Qty</th>
+              <th class="text-right p-3">Price</th>
+              <th class="text-right p-3">Total</th>
+            </tr>
+          </thead>
+          <tbody id="invBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Actions -->
+    <section class="mt-6 grid gap-6">
+      <!-- Log a Sale -->
+      <div class="rounded-xl border bg-white">
+        <div class="p-3 border-b font-medium">Log a Sale</div>
+        <form id="saleForm" class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs mb-1">Product</label>
+            <input id="saleProduct" class="w-full rounded-lg border p-2" placeholder="Gushers" required />
+          </div>
+          <div>
+            <label class="block text-xs mb-1">Qty</label>
+            <input id="saleQty" type="number" min="1" class="w-full rounded-lg border p-2" placeholder="1" required />
+          </div>
+          <div>
+            <label class="block text-xs mb-1">Price (uses Products if empty)</label>
+            <input id="salePrice" type="number" step="0.01" class="w-full rounded-lg border p-2" placeholder="6.00" />
+          </div>
+          <div>
+            <label class="block text-xs mb-1">Payment Method</label>
+            <input id="salePayMethod" class="w-full rounded-lg border p-2" placeholder="Cash / Zelle" />
+          </div>
+          <div>
+            <label class="block text-xs mb-1">Paid</label>
+            <select id="salePaid" class="w-full rounded-lg border p-2">
+              <option>Yes</option><option>No</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs mb-1">Deposited</label>
+            <select id="saleDeposited" class="w-full rounded-lg border p-2">
+              <option>No</option><option>Yes</option>
+            </select>
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-xs mb-1">Person</label>
+            <input id="salePerson" class="w-full rounded-lg border p-2" placeholder="LP / Eddie / Angie..." />
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-xs mb-1">Notes (optional)</label>
+            <input id="saleNotes" class="w-full rounded-lg border p-2" placeholder="Any note..." />
+          </div>
+          <div class="sm:col-span-2 flex items-center gap-3">
+            <button class="px-4 py-2 rounded-lg bg-black text-white" type="submit">Save</button>
+            <span id="saleStatus" class="text-sm text-gray-600"></span>
+          </div>
+        </form>
+      </div>
+
+      <!-- Restock -->
+      <div class="rounded-xl border bg-white">
+        <div class="p-3 border-b font-medium">Restock</div>
+        <form id="restockForm" class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs mb-1">Product</label>
+            <input id="restockProduct" class="w-full rounded-lg border p-2" placeholder="Gushers" required />
+          </div>
+          <div>
+            <label class="block text-xs mb-1">Qty (+)</label>
+            <input id="restockQty" type="number" min="1" class="w-full rounded-lg border p-2" placeholder="10" required />
+          </div>
+          <div class="sm:col-span-2 flex items-center gap-3">
+            <button class="px-4 py-2 rounded-lg bg-black text-white" type="submit">Add Stock</button>
+            <span id="restockStatus" class="text-sm text-gray-600"></span>
+          </div>
+        </form>
+      </div>
+
+      <!-- Adjustment -->
+      <div class="rounded-xl border bg-white">
+        <div class="p-3 border-b font-medium">Adjustment</div>
+        <form id="adjustForm" class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs mb-1">Product</label>
+            <input id="adjustProduct" class="w-full rounded-lg border p-2" placeholder="Gushers" required />
+          </div>
+          <div>
+            <label class="block text-xs mb-1">Delta (+/-)</label>
+            <input id="adjustDelta" type="number" class="w-full rounded-lg border p-2" placeholder="-1 or 5" required />
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-xs mb-1">Reason (optional)</label>
+            <input id="adjustReason" class="w-full rounded-lg border p-2" placeholder="Damaged, recount, promo..." />
+          </div>
+          <div class="sm:col-span-2 flex items-center gap-3">
+            <button class="px-4 py-2 rounded-lg bg-black text-white" type="submit">Apply</button>
+            <span id="adjustStatus" class="text-sm text-gray-600"></span>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const invBody = document.getElementById('invBody');
+    const saleStatus = document.getElementById('saleStatus');
+    const restockStatus = document.getElementById('restockStatus');
+    const adjustStatus = document.getElementById('adjustStatus');
+
+    const money = (n) => (n == null || isNaN(n)) ? '' : '$ ' + Number(n).toFixed(2);
+
+    async function loadInventory() {
+      invBody.innerHTML = `<tr><td class="p-3" colspan="4">Loading…</td></tr>`;
+      const res = await fetch('/.netlify/functions/inventory-list');
+      if (!res.ok) {
+        invBody.innerHTML = `<tr><td class="p-3 text-red-600" colspan="4">Error ${res.status}</td></tr>`;
+        return;
+      }
+      const { items } = await res.json();
+      invBody.innerHTML = items.map(r => {
+        const total = (Number(r.qty || 0) * Number(r.price || 0)) || 0;
+        return `
+          <tr class="border-t">
+            <td class="p-3">${r.product}</td>
+            <td class="p-3 text-right">${r.qty}</td>
+            <td class="p-3 text-right">${money(r.price)}</td>
+            <td class="p-3 text-right">${r.qty > 0 ? money(total) : '—'}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // Sales
+    document.getElementById('saleForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      saleStatus.textContent = 'Saving…';
+      const payload = {
+        product: document.getElementById('saleProduct').value.trim(),
+        qty: Number(document.getElementById('saleQty').value),
+        price: document.getElementById('salePrice').value ? Number(document.getElementById('salePrice').value) : null,
+        paid: document.getElementById('salePaid').value,
+        deposited: document.getElementById('saleDeposited').value,
+        person: document.getElementById('salePerson').value.trim(),
+        paymentMethod: document.getElementById('salePayMethod').value.trim(),
+        notes: document.getElementById('saleNotes').value.trim()
+      };
+      const res = await fetch('/.netlify/functions/sales-add', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        saleStatus.textContent = 'Saved ✔';
+        e.target.reset();
+        await loadInventory();
+        setTimeout(() => saleStatus.textContent = '', 1500);
+      } else {
+        saleStatus.textContent = `Error: ${await res.text()}`;
+      }
+    });
+
+    // Restock
+    document.getElementById('restockForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      restockStatus.textContent = 'Saving…';
+      const payload = {
+        product: document.getElementById('restockProduct').value.trim(),
+        qty: Number(document.getElementById('restockQty').value)
+      };
+      const res = await fetch('/.netlify/functions/restock-add', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        restockStatus.textContent = 'Saved ✔';
+        e.target.reset();
+        await loadInventory();
+        setTimeout(() => restockStatus.textContent = '', 1500);
+      } else {
+        restockStatus.textContent = `Error: ${await res.text()}`;
+      }
+    });
+
+    // Adjustment
+    document.getElementById('adjustForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      adjustStatus.textContent = 'Saving…';
+      const payload = {
+        product: document.getElementById('adjustProduct').value.trim(),
+        delta: Number(document.getElementById('adjustDelta').value),
+        reason: document.getElementById('adjustReason').value.trim()
+      };
+      const res = await fetch('/.netlify/functions/adjustment-add', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        adjustStatus.textContent = 'Saved ✔';
+        e.target.reset();
+        await loadInventory();
+        setTimeout(() => adjustStatus.textContent = '', 1500);
+      } else {
+        adjustStatus.textContent = `Error: ${await res.text()}`;
+      }
+    });
+
+    loadInventory();
+  </script>
+</body>
+</html>
