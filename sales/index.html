@@ -292,7 +292,8 @@ document.getElementById('salesBody').addEventListener('click', async (e) => {
         paid: row.querySelector('.toggle-paid')?.textContent.trim() === 'Yes',
         deposited: row.querySelector('.toggle-deposited')?.textContent.trim() === 'Yes',
         payment_method: cells[9].textContent.trim(),
-        notes: cells[10].textContent.trim()
+        notes: (cells[10].querySelector('div')?.textContent || '').trim()
+
       };
       openEditDialog(row, data);
       return;
