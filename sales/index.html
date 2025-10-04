@@ -184,6 +184,125 @@
       }
     }
 
+    // Update helpers
+async function updateSale(id, patch) {
+  const res = await fetch('/.netlify/functions/sales-update', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id, ...patch })
+  });
+  const text = await res.text();
+  if (!res.ok) throw new Error(text || ('HTTP '+res.status));
+  return JSON.parse(text).item;
+}
+
+function openEditDialog(row, data) {
+  // Minimal inline editor injected after the row
+  const editorId = 'editor-' + data.id;
+  if (document.getElementById(editorId)) return; // already open
+
+  const tr = document.createElement('tr');
+  tr.id = editorId;
+  tr.innerHTML = `
+    <td class="p-3 bg-gray-50" colspan="11">
+      <div class="grid gap-3 sm:grid-cols-4">
+        <div>
+          <label class="block text-xs mb-1">Payment Method</label>
+          <input id="ePayMethod" class="w-full rounded-lg border p-2" value="${data.payment_method ?? ''}">
+        </div>
+        <div>
+          <label class="block text-xs mb-1">Seller</label>
+          <input id="eSeller" class="w-full rounded-lg border p-2" value="${data.seller ?? ''}">
+        </div>
+        <div>
+          <label class="block text-xs mb-1">Buyer (Person)</label>
+          <input id="ePerson" class="w-full rounded-lg border p-2" value="${data.person ?? ''}">
+        </div>
+        <div class="sm:col-span-4">
+          <label class="block text-xs mb-1">Notes</label>
+          <input id="eNotes" class="w-full rounded-lg border p-2" value="${data.notes ?? ''}">
+        </div>
+        <div class="sm:col-span-4 flex gap-2">
+          <button id="eSave" class="px-3 py-2 rounded bg-black text-white text-sm">Save</button>
+          <button id="eCancel" class="px-3 py-2 rounded border text-sm">Cancel</button>
+          <span id="eStatus" class="text-sm text-gray-600 self-center"></span>
+        </div>
+      </div>
+    </td>
+  `;
+  row.insertAdjacentElement('afterend', tr);
+
+  const ePayMethod = tr.querySelector('#ePayMethod');
+  const eSeller    = tr.querySelector('#eSeller');
+  const ePerson    = tr.querySelector('#ePerson');
+  const eNotes     = tr.querySelector('#eNotes');
+  const eStatus    = tr.querySelector('#eStatus');
+
+  tr.querySelector('#eCancel').onclick = () => tr.remove();
+  tr.querySelector('#eSave').onclick = async () => {
+    try {
+      eStatus.textContent = 'Saving…';
+      await updateSale(data.id, {
+        payment_method: ePayMethod.value.trim(),
+        seller: eSeller.value.trim(),
+        person: ePerson.value.trim(),
+        notes: eNotes.value.trim()
+      });
+      eStatus.textContent = 'Saved ✔';
+      setTimeout(() => tr.remove(), 600);
+      await loadSales();
+    } catch (err) {
+      eStatus.textContent = 'Error: ' + err.message;
+    }
+  }
+}
+
+// Handle row button clicks (toggle + edit)
+document.getElementById('salesBody').addEventListener('click', async (e) => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  const row = e.target.closest('tr[data-id]');
+  const id = row?.getAttribute('data-id');
+  if (!id) return;
+
+  try {
+    if (btn.classList.contains('toggle-paid')) {
+      const current = btn.textContent.trim() === 'Yes';
+      await updateSale(id, { paid: !current });
+      await loadSales();
+      return;
+    }
+    if (btn.classList.contains('toggle-deposited')) {
+      const current = btn.textContent.trim() === 'Yes';
+      await updateSale(id, { deposited: !current });
+      await loadSales();
+      return;
+    }
+    if (btn.classList.contains('edit-row')) {
+      // Build a data snapshot from current cells to prefill the editor
+      const cells = row.querySelectorAll('td');
+      const data = {
+        id,
+        seller: cells[1].textContent.trim(),
+        person: cells[2].textContent.trim(),
+        product: cells[3].textContent.trim(),
+        qty: cells[4].textContent.trim(),
+        price: cells[5].textContent.trim(),
+        total: cells[6].textContent.trim(),
+        paid: row.querySelector('.toggle-paid')?.textContent.trim() === 'Yes',
+        deposited: row.querySelector('.toggle-deposited')?.textContent.trim() === 'Yes',
+        payment_method: cells[9].textContent.trim(),
+        notes: cells[10].textContent.trim()
+      };
+      openEditDialog(row, data);
+      return;
+    }
+  } catch (err) {
+    alert('Update failed: ' + err.message);
+  }
+});
+
+
     document.getElementById('applyBtn').addEventListener('click', (e) => {
       e.preventDefault(); loadSales();
     });
