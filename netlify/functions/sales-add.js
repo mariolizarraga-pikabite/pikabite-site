@@ -22,6 +22,7 @@ export async function handler(event) {
   const paid = String(body.paid || '').toLowerCase() === 'yes' || body.paid === true;
   const deposited = String(body.deposited || '').toLowerCase() === 'yes' || body.deposited === true;
   const person = (body.person || '').trim();
+  const seller = (body.seller || '').trim();
   const payment_method = (body.paymentMethod || '').trim();
   const notes = (body.notes || '').toString().slice(0, 500);
 
@@ -44,14 +45,14 @@ export async function handler(event) {
 
   // 1) Insert detailed sale
   const { error: saleErr } = await supabase.from('sales').insert({
-    product, qty, price: unitPrice, total, paid, deposited, person, payment_method, notes
+    product, qty, price: unitPrice, total, paid, deposited, person, seller, payment_method, notes
   });
   if (saleErr) return { statusCode: 500, headers: cors(origin), body: saleErr.message };
 
   // 2) Insert ledger delta (negative qty)
   const { error: ledErr } = await supabase.from('stock_ledger').insert({
     product, delta: -qty, source: 'sale',
-    meta: { unitPrice, total, paid, deposited, person, payment_method, notes }
+    meta: { unitPrice, total, paid, deposited, person, seller, payment_method, notes }
   });
   if (ledErr) return { statusCode: 500, headers: cors(origin), body: ledErr.message };
 
