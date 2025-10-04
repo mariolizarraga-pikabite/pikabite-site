@@ -19,8 +19,11 @@
     <section class="rounded-xl border bg-white p-4 mb-4 grid grid-cols-1 sm:grid-cols-5 gap-3">
       <div class="sm:col-span-2">
         <label class="block text-xs mb-1">Seller</label>
-        <input id="fSeller" class="w-full rounded-lg border p-2" placeholder="e.g., Mario Lizarraga" />
+        <select id="fSeller" class="w-full rounded-lg border p-2">
+          <option value="">Any</option>
+        </select>
       </div>
+
       <div class="sm:col-span-2">
         <label class="block text-xs mb-1">Product</label>
         <input id="fProduct" class="w-full rounded-lg border p-2" placeholder="e.g., Gushers" />
@@ -98,6 +101,21 @@
       return '/.netlify/functions/sales-list?' + p.toString();
     }
 
+    async function populateSellerFilter() {
+      const sel = document.getElementById('fSeller');
+      try {
+        const res = await fetch('/.netlify/functions/sellers-list', { cache: 'no-store' });
+        const text = await res.text();
+        if (!res.ok) throw new Error(text || ('HTTP '+res.status));
+        const { items } = JSON.parse(text); // [{name}]
+        const opts = items.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+        sel.insertAdjacentHTML('beforeend', opts);
+      } catch (err) {
+        // If it fails, keep the "Any" option and continue
+        console.error('Failed to load sellers:', err);
+      }
+    }
+
     async function loadSales() {
       const status = document.getElementById('status');
       const body = document.getElementById('salesBody');
@@ -150,7 +168,10 @@
       loadSales();
     });
 
-    loadSales();
+    (async () => {
+      await populateSellerFilter();
+      await loadSales();
+    })();
   </script>
 </body>
 </html>
