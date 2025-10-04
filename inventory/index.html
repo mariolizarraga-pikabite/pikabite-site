@@ -127,170 +127,143 @@
   </main>
 
     <script>
-    // Utility
-    const money = (n) => (n == null || isNaN(n)) ? '' : '$ ' + Number(n).toFixed(2);
-  
-    // Fill all product dropdowns from the products-list function
-    async function populateProductDropdowns() {
-      const res = await fetch('/.netlify/functions/products-list', { cache: 'no-store' });
-      if (!res.ok) throw new Error('Failed to load products');
-      const { items } = await res.json(); // [{product, price}, ...]
-  
-      // Build option HTML once
-      const opts = items.map(p => `<option value="${p.product}" data-price="${p.price}">${p.product}</option>`).join('');
-  
-      // Attach to each select
-      for (const id of ['saleProduct', 'restockProduct', 'adjustProduct']) {
-        const sel = document.getElementById(id);
-        sel.innerHTML = opts;
+      const money = (n) => (n == null || isNaN(n)) ? '' : '$ ' + Number(n).toFixed(2);
+    
+      async function populateProductDropdowns() {
+        const res = await fetch('/.netlify/functions/products-list', { cache: 'no-store' });
+        if (!res.ok) throw new Error('Failed to load products: ' + (await res.text()));
+        const { items } = await res.json(); // [{product, price}]
+        const opts = items.map(p => `<option value="${p.product}">${p.product}</option>`).join('');
+        for (const id of ['saleProduct','restockProduct','adjustProduct']) {
+          const sel = document.getElementById(id);
+          sel.innerHTML = opts;
+        }
+        // Sale price placeholder auto-sync to selected product
+        const saleSelect = document.getElementById('saleProduct');
+        const salePrice  = document.getElementById('salePrice'); // existing input
+        const setPricePlaceholder = () => {
+          const selected = saleSelect.selectedOptions[0];
+          if (!selected) return;
+          // Ask the server for canonical price via inventory-list (cheaper: cache from products-list)
+          const optText = selected.value;
+          fetch('/.netlify/functions/products-list').then(r => r.json()).then(({items}) => {
+            const found = items.find(i => i.product === optText);
+            salePrice.placeholder = found ? Number(found.price).toFixed(2) : '';
+          }).catch(()=>{});
+        };
+        saleSelect.addEventListener('change', setPricePlaceholder);
+        setPricePlaceholder();
       }
-  
-      // Optional: when selecting a product in the Sale form, show its price
-      const saleSelect = document.getElementById('saleProduct');
-      const salePrice  = document.getElementById('salePrice'); // your existing input
-      const setPricePlaceholder = () => {
-        const opt = saleSelect.selectedOptions[0];
-        const p   = opt ? Number(opt.getAttribute('data-price')) : null;
-        salePrice.placeholder = p ? Number(p).toFixed(2) : '';
-      };
-      saleSelect.addEventListener('change', setPricePlaceholder);
-      setPricePlaceholder(); // initialize once
-    }
-  
-    // Existing loadInventory() stays the same
-    async function loadInventory() {
-      const invBody = document.getElementById('invBody');
-      invBody.innerHTML = `<tr><td class="p-3" colspan="4">Loading…</td></tr>`;
-      const res = await fetch('/.netlify/functions/inventory-list', { cache: 'no-store' });
-      if (!res.ok) {
-        invBody.innerHTML = `<tr><td class="p-3 text-red-600" colspan="4">Error ${res.status}</td></tr>`;
-        return;
+    
+      async function loadInventory() {
+        const invBody = document.getElementById('invBody');
+        invBody.innerHTML = `<tr><td class="p-3" colspan="4">Loading…</td></tr>`;
+        const res = await fetch('/.netlify/functions/inventory-list', { cache: 'no-store' });
+        if (!res.ok) {
+          invBody.innerHTML = `<tr><td class="p-3 text-red-600" colspan="4">Error ${res.status}: ${await res.text()}</td></tr>`;
+          return;
+        }
+        const { items } = await res.json(); // from view: [{product, qty, price}]
+        invBody.innerHTML = items.map(r => {
+          const total = (Number(r.qty || 0) * Number(r.price || 0)) || 0;
+          return `
+            <tr class="border-t">
+              <td class="p-3">${r.product}</td>
+              <td class="p-3 text-right">${r.qty}</td>
+              <td class="p-3 text-right">${money(r.price)}</td>
+              <td class="p-3 text-right">${r.qty > 0 ? money(total) : '—'}</td>
+            </tr>
+          `;
+        }).join('');
       }
-      const { items } = await res.json(); // from inventory_current view: [{product, qty, price}]
-      invBody.innerHTML = items.map(r => {
-        const total = (Number(r.qty || 0) * Number(r.price || 0)) || 0;
-        return `
-          <tr class="border-t">
-            <td class="p-3">${r.product}</td>
-            <td class="p-3 text-right">${r.qty}</td>
-            <td class="p-3 text-right">${money(r.price)}</td>
-            <td class="p-3 text-right">${r.qty > 0 ? money(total) : '—'}</td>
-          </tr>
-        `;
-      }).join('');
-    }
-  
-    // ---- existing submit handlers can stay the same ----
-    // saleForm uses saleProduct.value, restockForm uses restockProduct.value, adjustForm uses adjustProduct.value
-  
-    // Bootstrap page
-    (async () => {
-      await populateProductDropdowns();
-      await loadInventory();
-    })();
-  </script>
-
-
-  <script>
-    const invBody = document.getElementById('invBody');
-    const saleStatus = document.getElementById('saleStatus');
-    const restockStatus = document.getElementById('restockStatus');
-    const adjustStatus = document.getElementById('adjustStatus');
-
-    const money = (n) => (n == null || isNaN(n)) ? '' : '$ ' + Number(n).toFixed(2);
-
-    async function loadInventory() {
-      invBody.innerHTML = `<tr><td class="p-3" colspan="4">Loading…</td></tr>`;
-      const res = await fetch('/.netlify/functions/inventory-list');
-      if (!res.ok) {
-        invBody.innerHTML = `<tr><td class="p-3 text-red-600" colspan="4">Error ${res.status}</td></tr>`;
-        return;
-      }
-      const { items } = await res.json();
-      invBody.innerHTML = items.map(r => {
-        const total = (Number(r.qty || 0) * Number(r.price || 0)) || 0;
-        return `
-          <tr class="border-t">
-            <td class="p-3">${r.product}</td>
-            <td class="p-3 text-right">${r.qty}</td>
-            <td class="p-3 text-right">${money(r.price)}</td>
-            <td class="p-3 text-right">${r.qty > 0 ? money(total) : '—'}</td>
-          </tr>
-        `;
-      }).join('');
-    }
-
-    // Sales
-    document.getElementById('saleForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      saleStatus.textContent = 'Saving…';
-      const payload = {
-        product: document.getElementById('saleProduct').value.trim(),
-        qty: Number(document.getElementById('saleQty').value),
-        price: document.getElementById('salePrice').value ? Number(document.getElementById('salePrice').value) : null,
-        paid: document.getElementById('salePaid').value,
-        deposited: document.getElementById('saleDeposited').value,
-        person: document.getElementById('salePerson').value.trim(),
-        paymentMethod: document.getElementById('salePayMethod').value.trim(),
-        notes: document.getElementById('saleNotes').value.trim()
-      };
-      const res = await fetch('/.netlify/functions/sales-add', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+    
+      // SALE
+      document.getElementById('saleForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const statusEl = document.getElementById('saleStatus');
+        statusEl.textContent = 'Saving…';
+        const payload = {
+          product: document.getElementById('saleProduct').value.trim(),
+          qty: Number(document.getElementById('saleQty').value),
+          price: document.getElementById('salePrice').value ? Number(document.getElementById('salePrice').value) : null,
+          paid: document.getElementById('salePaid').value,
+          deposited: document.getElementById('saleDeposited').value,
+          person: document.getElementById('salePerson').value.trim(),
+          paymentMethod: document.getElementById('salePayMethod').value.trim(),
+          notes: document.getElementById('saleNotes').value.trim()
+        };
+        try {
+          const res = await fetch('/.netlify/functions/sales-add', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+          });
+          const text = await res.text();
+          if (!res.ok) throw new Error(text || ('HTTP '+res.status));
+          statusEl.textContent = 'Saved ✔';
+          e.target.reset();
+          await loadInventory();
+          setTimeout(()=> statusEl.textContent = '', 1500);
+        } catch (err) {
+          statusEl.textContent = 'Error: ' + err.message;
+          console.error(err);
+        }
       });
-      if (res.ok) {
-        saleStatus.textContent = 'Saved ✔';
-        e.target.reset();
-        await loadInventory();
-        setTimeout(() => saleStatus.textContent = '', 1500);
-      } else {
-        saleStatus.textContent = `Error: ${await res.text()}`;
-      }
-    });
-
-    // Restock
-    document.getElementById('restockForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      restockStatus.textContent = 'Saving…';
-      const payload = {
-        product: document.getElementById('restockProduct').value.trim(),
-        qty: Number(document.getElementById('restockQty').value)
-      };
-      const res = await fetch('/.netlify/functions/restock-add', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+    
+      // RESTOCK
+      document.getElementById('restockForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const statusEl = document.getElementById('restockStatus');
+        statusEl.textContent = 'Saving…';
+        const payload = {
+          product: document.getElementById('restockProduct').value.trim(),
+          qty: Number(document.getElementById('restockQty').value)
+        };
+        try {
+          const res = await fetch('/.netlify/functions/restock-add', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+          });
+          const text = await res.text();
+          if (!res.ok) throw new Error(text || ('HTTP '+res.status));
+          statusEl.textContent = 'Saved ✔';
+          e.target.reset();
+          await loadInventory();
+          setTimeout(()=> statusEl.textContent = '', 1500);
+        } catch (err) {
+          statusEl.textContent = 'Error: ' + err.message;
+          console.error(err);
+        }
       });
-      if (res.ok) {
-        restockStatus.textContent = 'Saved ✔';
-        e.target.reset();
-        await loadInventory();
-        setTimeout(() => restockStatus.textContent = '', 1500);
-      } else {
-        restockStatus.textContent = `Error: ${await res.text()}`;
-      }
-    });
-
-    // Adjustment
-    document.getElementById('adjustForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      adjustStatus.textContent = 'Saving…';
-      const payload = {
-        product: document.getElementById('adjustProduct').value.trim(),
-        delta: Number(document.getElementById('adjustDelta').value),
-        reason: document.getElementById('adjustReason').value.trim()
-      };
-      const res = await fetch('/.netlify/functions/adjustment-add', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+    
+      // ADJUSTMENT
+      document.getElementById('adjustForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const statusEl = document.getElementById('adjustStatus');
+        statusEl.textContent = 'Saving…';
+        const payload = {
+          product: document.getElementById('adjustProduct').value.trim(),
+          delta: Number(document.getElementById('adjustDelta').value),
+          reason: document.getElementById('adjustReason').value.trim()
+        };
+        try {
+          const res = await fetch('/.netlify/functions/adjustment-add', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+          });
+          const text = await res.text();
+          if (!res.ok) throw new Error(text || ('HTTP '+res.status));
+          statusEl.textContent = 'Saved ✔';
+          e.target.reset();
+          await loadInventory();
+          setTimeout(()=> statusEl.textContent = '', 1500);
+        } catch (err) {
+          statusEl.textContent = 'Error: ' + err.message;
+          console.error(err);
+        }
       });
-      if (res.ok) {
-        adjustStatus.textContent = 'Saved ✔';
-        e.target.reset();
+    
+      (async () => {
+        await populateProductDropdowns();
         await loadInventory();
-        setTimeout(() => adjustStatus.textContent = '', 1500);
-      } else {
-        adjustStatus.textContent = `Error: ${await res.text()}`;
-      }
-    });
+      })();
+    </script>
 
-    loadInventory();
-  </script>
 </body>
 </html>
