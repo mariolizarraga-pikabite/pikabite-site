@@ -26,7 +26,9 @@
 
       <div class="sm:col-span-2">
         <label class="block text-xs mb-1">Product</label>
-        <input id="fProduct" class="w-full rounded-lg border p-2" placeholder="e.g., Gushers" />
+        <select id="fProduct" class="w-full rounded-lg border p-2">
+          <option value="">Any</option>
+        </select>
       </div>
       <div>
         <label class="block text-xs mb-1">Rows</label>
@@ -116,6 +118,21 @@
       }
     }
 
+    async function populateProductFilter() {
+      const sel = document.getElementById('fProduct');
+      try {
+        const res = await fetch('/.netlify/functions/products-list', { cache: 'no-store' });
+        const text = await res.text();
+        if (!res.ok) throw new Error(text || ('HTTP ' + res.status));
+        const { items } = JSON.parse(text); // [{ product }]
+        const opts = items.map(p => `<option value="${p.product}">${p.product}</option>`).join('');
+        sel.insertAdjacentHTML('beforeend', opts);
+      } catch (err) {
+        console.error('Failed to load products:', err);
+      }
+    }
+
+
     async function loadSales() {
       const status = document.getElementById('status');
       const body = document.getElementById('salesBody');
@@ -170,6 +187,7 @@
 
     (async () => {
       await populateSellerFilter();
+      await populateProductFilter();
       await loadSales();
     })();
   </script>
